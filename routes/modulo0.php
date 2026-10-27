@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\CambioPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\InicioController;
 use Illuminate\Support\Facades\Route;
@@ -8,8 +9,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Rutas del módulo 0 · Base y seguridad
 |--------------------------------------------------------------------------
-| Se completa parte por parte. Los demás módulos agregan sus rutas dentro del
-| grupo "auth + activo".
+| Los demás módulos agregan sus rutas dentro del grupo "auth + activo + cambio.password".
 */
 
 Route::get('/', fn () => redirect()->route('inicio'));
@@ -24,6 +24,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::middleware('activo')->group(function () {
-        Route::get('/inicio', InicioController::class)->name('inicio');
+        // Fuera de "cambio.password" para evitar un bucle de redirecciones.
+        Route::get('/cuenta/password', [CambioPasswordController::class, 'edit'])->name('password.cambiar');
+        Route::put('/cuenta/password', [CambioPasswordController::class, 'update'])->name('password.actualizar');
+
+        Route::middleware('cambio.password')->group(function () {
+            Route::get('/inicio', InicioController::class)->name('inicio');
+        });
     });
 });
