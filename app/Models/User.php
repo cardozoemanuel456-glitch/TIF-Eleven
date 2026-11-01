@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AnioCursada;
 use App\Enums\EstadoUsuario;
 use App\Enums\Rol;
+use App\Notifications\RestablecerPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -89,8 +90,8 @@ class User extends Authenticatable
 
     /**
      * Cierra todas las sesiones abiertas del usuario. Requiere SESSION_DRIVER=database;
-     * con otro driver, el middleware que se agrega en la parte 3 igualmente corta
-     * el acceso en la siguiente petición.
+     * con otro driver, el middleware "activo" igualmente corta el acceso en la
+     * siguiente petición.
      */
     public function cerrarSesiones(): void
     {
@@ -99,6 +100,14 @@ class User extends Authenticatable
                 ->where('user_id', $this->id)
                 ->delete();
         }
+    }
+
+    // ------------------------------------------------------------- Notificaciones
+
+    /** Reemplaza el correo en inglés de Laravel por el de Eleven. */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new RestablecerPasswordNotification($token));
     }
 
     // --------------------------------------------------------------------- Otros

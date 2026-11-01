@@ -11,6 +11,10 @@
     <h1 class="text-3xl font-semibold text-[#12263F]">Eleven</h1>
     <p class="mb-6 mt-1 text-sm text-slate-600">Portal de la subsede Formosa · Tecnicatura en Programación</p>
 
+    @if (session('estado'))
+        <div class="mb-4 rounded-md border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-900">{{ session('estado') }}</div>
+    @endif
+
     <form method="POST" action="{{ route('login.store') }}" class="space-y-4">
         @csrf
 
@@ -41,7 +45,10 @@
         </button>
     </form>
 
-    <p class="mt-5 text-xs text-slate-600">
+    <p class="mt-5 text-sm">
+        <a href="{{ route('password.request') }}" class="text-[#1F4E8C] underline">¿Olvidaste tu contraseña?</a>
+    </p>
+    <p class="mt-2 text-xs text-slate-600">
         ¿Problemas para entrar? Consultá en preceptoría.
     </p>
 </main>
