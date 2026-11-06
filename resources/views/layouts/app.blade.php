@@ -21,13 +21,20 @@
             <a href="{{ route('inicio') }}" class="{{ request()->routeIs('inicio') ? $activo : $enlace }}">Inicio</a>
 
             {{-- Cada acceso aparece solo si la Policy lo permite y la ruta ya existe. --}}
+            @can('viewAny', \App\Models\Acta::class)
+                @if (Route::has('actas.index'))
+                    <a href="{{ route('actas.index') }}"
+                       class="{{ request()->routeIs('actas.*') ? $activo : $enlace }}">Actas</a>
+                @endif
+            @endcan
+
             @can('viewAny', \App\Models\User::class)
                 @if (Route::has('admin.usuarios.index'))
                     <a href="{{ route('admin.usuarios.index') }}"
                        class="{{ request()->routeIs('admin.usuarios.*') ? $activo : $enlace }}">Usuarios</a>
                 @endif
             @endcan
-            {{-- Los demás accesos (alumnos, actas, avisos, TIF) se agregan con cada módulo. --}}
+            {{-- Los demás accesos (alumnos, avisos, TIF) se agregan con cada módulo. --}}
         </div>
 
         <div class="mt-6 border-t border-white/10 pt-4">
