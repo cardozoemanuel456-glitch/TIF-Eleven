@@ -7,7 +7,7 @@
 | Si la preceptora cambia el diseño de la planilla, se ajusta acá y no en el código.
 | Las posiciones salen de la planilla real de seguimiento:
 |   - fila 4: nombre de cada materia (fila 3: cuatrimestre; en la pestaña 2023 también PLAN 2003)
-|   - columna D: número de legajo, desde la fila 5
+|   - columna D: número de legajo, desde la fila 5 (columna B: apellido y nombre)
 |   - pestañas por cohorte, de la más reciente a la más antigua (2025, 2024, 2023)
 */
 
@@ -23,6 +23,7 @@ return [
     // M1-07: dónde se busca la materia y el legajo en cada pestaña.
     'filas_materia' => [3, 4],
     'columna_legajo' => 4,   // D
+    'columna_nombre' => 2,   // B: solo para avisar si el nombre del acta y el de la planilla difieren
     'fila_inicial' => 5,
 
     // Formato con que se escribe la nota en la celda: "9 (nueve)".
