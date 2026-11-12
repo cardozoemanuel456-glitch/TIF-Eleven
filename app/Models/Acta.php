@@ -25,6 +25,7 @@ class Acta extends Model
         'archivo_pdf',
         'hash_sha256',
         'planilla_origen',
+        'planilla_nombre',
         'materia',
         'tomo',
         'folio',

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\ActaIlegibleException;
 use App\Exceptions\PlanillaInvalidaException;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Smalot\PdfParser\Config;
@@ -177,6 +178,59 @@ class ActaProcessorService
     }
 
     /**
+     * Vuelca las notas en una copia de la planilla (M1-06, M1-07). Usa el mismo plan que
+     * analizar(), así que se escribe exactamente lo que mostró la vista previa:
+     *  - las celdas vacías se cargan;
+     *  - los conflictos se conservan, salvo que $decisiones[legajo] sea 'sobrescribir';
+     *  - nada más se toca, y la planilla original no se modifica.
+     * Después de guardar, reabre el archivo generado y comprueba cada celda escrita.
+     *
+     * @param  array<string, mixed>  $datosActa
+     * @param  array<int|string, string>  $decisiones legajo => 'conservar' | 'sobrescribir'
+     * @return array{plan: array<string, mixed>, conflictos_resueltos: array<int, array<string, mixed>>, escritas: int}
+     *
+     * @throws PlanillaInvalidaException
+     */
+    public function cargar(string $rutaExcel, string $rutaSalida, array $datosActa, array $decisiones = []): array
+    {
+        $plan = $this->analizar($rutaExcel, $datosActa);
+
+        $escrituras = $plan['cargas'];
+        $resueltos = [];
+
+        foreach ($plan['conflictos'] as $conflicto) {
+            $sobrescribir = ($decisiones[$conflicto['legajo']] ?? 'conservar') === 'sobrescribir';
+            $resueltos[] = $conflicto + ['resolucion' => $sobrescribir ? 'sobrescribir' : 'conservar'];
+
+            if ($sobrescribir) {
+                $escrituras[] = $conflicto;
+            }
+        }
+
+        // Se abre completa (no solo lectura) para conservar los formatos de la planilla.
+        $libro = $this->abrirPlanilla($rutaExcel, soloLectura: false);
+
+        foreach ($escrituras as $item) {
+            $hoja = $libro->getSheetByName((string) $item['hoja']);
+
+            if ($hoja === null) {
+                throw new PlanillaInvalidaException("No se encontró la pestaña {$item['hoja']} al escribir la planilla.");
+            }
+
+            $hoja->setCellValueExplicit($item['celda'], $item['nota'], DataType::TYPE_STRING);
+        }
+
+        $escritor = IOFactory::createWriter($libro, 'Xlsx');
+        $escritor->setPreCalculateFormulas(false);
+        $escritor->save($rutaSalida);
+        $libro->disconnectWorksheets();
+
+        $this->verificarEscrituras($rutaSalida, $escrituras);
+
+        return ['plan' => $plan, 'conflictos_resueltos' => $resueltos, 'escritas' => count($escrituras)];
+    }
+
+    /**
      * Minúsculas, sin tildes ni signos, con las abreviaturas de config('actas.abreviaturas').
      * Sirve para comparar el nombre de una materia del acta con el encabezado de la planilla.
      */
@@ -345,6 +399,22 @@ class ActaProcessorService
         $cuenta = array_count_values(array_column($alumnos, 'legajo'));
 
         return array_map('strval', array_keys(array_filter($cuenta, fn (int $n) => $n > 1)));
+    }
+
+    /** Reabre la planilla generada y comprueba que cada celda escrita tenga la nota prevista. */
+    private function verificarEscrituras(string $ruta, array $escrituras): void
+    {
+        $libro = $this->abrirPlanilla($ruta, soloLectura: true);
+
+        foreach ($escrituras as $item) {
+            $valor = $libro->getSheetByName((string) $item['hoja'])?->getCell($item['celda'])->getValue();
+
+            if ((string) $valor !== $item['nota']) {
+                throw new PlanillaInvalidaException('La planilla generada no pasó la verificación: no se entregó ningún archivo.');
+            }
+        }
+
+        $libro->disconnectWorksheets();
     }
 
     private static function limpiarTexto(string $texto): string

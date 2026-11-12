@@ -37,7 +37,9 @@
                     @endphp
                     <tr>
                         <td class="whitespace-nowrap px-4 py-3">{{ $acta->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="px-4 py-3 font-medium">{{ $acta->materia ?? 'Sin identificar' }}</td>
+                        <td class="px-4 py-3 font-medium">
+                            <a href="{{ route('actas.show', $acta) }}" class="text-[#1F4E8C] underline">{{ $acta->materia ?? 'Sin identificar' }}</a>
+                        </td>
                         <td class="px-4 py-3">{{ $acta->tomo ?? '—' }}</td>
                         <td class="px-4 py-3">{{ $acta->folio ?? '—' }}</td>
                         <td class="px-4 py-3">
