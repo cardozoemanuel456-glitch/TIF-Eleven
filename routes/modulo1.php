@@ -19,6 +19,9 @@ Route::middleware(['auth', 'activo', 'cambio.password', 'can:viewAny,'.Acta::cla
     Route::post('/actas/analizar', [ActaController::class, 'analizar'])->name('actas.analizar');
     Route::get('/actas/{acta}', [ActaController::class, 'show'])->name('actas.show');
     Route::post('/actas/{acta}/confirmar', [ActaController::class, 'confirmar'])->name('actas.confirmar');
+    Route::get('/actas/{acta}/reprocesar', [ActaController::class, 'reprocesar'])->name('actas.reprocesar');
+    Route::post('/actas/{acta}/reprocesar', [ActaController::class, 'reprocesarGuardar'])->name('actas.reprocesar.guardar');
+    Route::delete('/actas/{acta}', [ActaController::class, 'destroy'])->name('actas.destroy');
     Route::get('/actas/{acta}/pdf', [ActaController::class, 'pdf'])->name('actas.pdf');
     Route::get('/actas/{acta}/planillas/{planilla}', [ActaController::class, 'planilla'])->name('actas.planilla');
 });

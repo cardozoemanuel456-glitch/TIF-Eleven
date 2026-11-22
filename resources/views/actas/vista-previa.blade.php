@@ -15,6 +15,12 @@
         <strong>Todavía no se escribió nada en la planilla.</strong> Revisá lo que sigue y confirmá al final.
     </p>
 
+    @if ($esReproceso)
+        <div class="mt-4 max-w-4xl rounded-md border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+            Reproceso: se aplica el acta ya guardada sobre la planilla que subiste ahora. Las planillas que generaste antes se conservan.
+        </div>
+    @endif
+
     @if ($duplicada)
         <div class="mt-4 max-w-4xl rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Este mismo PDF ya fue procesado el {{ $duplicada->procesada_en?->format('d/m/Y H:i') }}

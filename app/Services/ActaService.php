@@ -111,9 +111,10 @@ class ActaService
      */
     public function confirmar(Acta $acta, array $decisiones): Acta
     {
-        if ($acta->estado !== EstadoActa::Analizada) {
+        // Una acta ya procesada solo se vuelve a confirmar si tiene una planilla pendiente (reproceso).
+        if ($acta->planilla_origen === null && $acta->estado !== EstadoActa::Analizada) {
             throw new ActaNoDisponibleException(
-                'Esta acta ya fue procesada o terminó con error. Subila de nuevo si necesitás repetir la carga.'
+                'Esta acta no tiene una planilla pendiente de confirmar. Para repetir la carga usá «Reprocesar».'
             );
         }
 
@@ -175,6 +176,106 @@ class ActaService
         return $acta->refresh();
     }
 
+    /** ¿Sigue guardado el PDF de esta acta? Es lo que permite reprocesarla sin subirlo de nuevo. */
+    public function tienePdf(Acta $acta): bool
+    {
+        return $acta->archivo_pdf !== null && $this->disco()->exists($acta->archivo_pdf);
+    }
+
+    /**
+     * M1-13: reprocesar. Reutiliza el PDF guardado y pide una planilla de seguimiento actual.
+     * Deja la acta con una planilla pendiente: se muestra la vista previa y, al confirmar, se
+     * genera una planilla nueva y se conservan las anteriores. Si algo falla no cambia nada.
+     *
+     * @throws ActaNoDisponibleException|ActaIlegibleException|PlanillaInvalidaException
+     */
+    public function reprocesar(Acta $acta, UploadedFile $planilla): Acta
+    {
+        if (! $this->tienePdf($acta)) {
+            throw new ActaNoDisponibleException('El PDF de esta acta ya no está disponible. Subila de nuevo desde «Subir acta».');
+        }
+
+        $disco = $this->disco();
+        $rutaOrigen = $disco->putFileAs($this->carpeta().'/origen', $planilla, Str::uuid().'.xlsx');
+
+        if ($rutaOrigen === false) {
+            throw new RuntimeException('No se pudo guardar la planilla subida.');
+        }
+
+        try {
+            $datos = $this->procesador->parsePdfActa($disco->path($acta->archivo_pdf));
+            $this->procesador->analizar($disco->path($rutaOrigen), $datos);
+        } catch (Throwable $e) {
+            $disco->delete($rutaOrigen);
+
+            throw $e;
+        }
+
+        // Una planilla pendiente anterior (de un reproceso sin confirmar) se reemplaza.
+        if ($acta->planilla_origen !== null) {
+            $disco->delete($acta->planilla_origen);
+        }
+
+        $acta->update([
+            'planilla_origen' => $rutaOrigen,
+            'planilla_nombre' => Str::limit($planilla->getClientOriginalName(), 250, ''),
+            'mensaje_error' => null,
+        ]);
+
+        return $acta;
+    }
+
+    /** M1-13: borra el acta con su PDF, sus planillas, su informe y cualquier planilla pendiente. */
+    public function eliminar(Acta $acta, User $usuario): void
+    {
+        $rutas = array_filter([
+            $acta->archivo_pdf,
+            $acta->planilla_origen,
+            ...$acta->planillas()->pluck('archivo_xlsx')->all(),
+        ]);
+
+        // Las planillas generadas se borran en cascada con el acta.
+        DB::transaction(fn () => $acta->delete());
+
+        $this->disco()->delete($rutas);
+
+        Log::info('actas.eliminada', ['acta' => $acta->id, 'usuario' => $usuario->id]);
+    }
+
+    /**
+     * M1-12: descarta las planillas subidas que no se confirmaron dentro de
+     * config('actas.horas_limpieza') y los archivos temporales que quedaron sin acta.
+     * No toca el PDF, el informe ni las planillas generadas.
+     *
+     * @return array{planillas: int, huerfanos: int}
+     */
+    public function limpiar(): array
+    {
+        $disco = $this->disco();
+        $limite = now()->subHours((int) config('actas.horas_limpieza', 24));
+        $planillas = 0;
+        $huerfanos = 0;
+
+        $vencidas = Acta::whereNotNull('planilla_origen')->where('updated_at', '<=', $limite)->get();
+
+        foreach ($vencidas as $acta) {
+            $disco->delete($acta->planilla_origen);
+            $acta->update(['planilla_origen' => null]);
+            $planillas++;
+        }
+
+        $referenciadas = Acta::whereNotNull('planilla_origen')->pluck('planilla_origen')->all();
+
+        foreach ($disco->files($this->carpeta().'/origen') as $ruta) {
+            if (! in_array($ruta, $referenciadas, true) && $disco->lastModified($ruta) <= $limite->getTimestamp()) {
+                $disco->delete($ruta);
+                $huerfanos++;
+            }
+        }
+
+        return ['planillas' => $planillas, 'huerfanos' => $huerfanos];
+    }
+
     public function disco(): FilesystemAdapter
     {
         return Storage::disk((string) config('actas.disco'));
@@ -210,8 +311,9 @@ class ActaService
     {
         $this->disco()->delete(array_filter([$salida, $acta->planilla_origen]));
 
+        // Si el acta ya tenía planillas generadas (un reproceso que falla), conserva su estado.
         $acta->update([
-            'estado' => EstadoActa::Error,
+            'estado' => $acta->planillas()->exists() ? $acta->estado : EstadoActa::Error,
             'mensaje_error' => $mensaje,
             'planilla_origen' => null,
         ]);

@@ -14,14 +14,28 @@
         <p class="mb-3 text-sm text-green-900">
             Descargá la planilla y usala como tu planilla de seguimiento vigente: es la que tiene las notas cargadas.
         </p>
-        <div class="flex flex-wrap gap-3">
-            @foreach ($acta->planillas as $planilla)
-                <a href="{{ route('actas.planilla', [$acta, $planilla]) }}"
-                   class="rounded-md bg-[#1F4E8C] px-4 py-2 text-sm font-medium text-white hover:bg-[#12263F]">
-                    Descargar planilla actualizada
-                </a>
+        <div class="space-y-2">
+            @foreach ($acta->planillas as $i => $planilla)
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('actas.planilla', [$acta, $planilla]) }}"
+                       class="rounded-md bg-[#1F4E8C] px-4 py-2 text-sm font-medium text-white hover:bg-[#12263F]">
+                        Descargar planilla actualizada
+                    </a>
+                    <span class="text-sm text-green-900">
+                        Generada el {{ $planilla->generada_en->format('d/m/Y H:i') }}@if ($i === 0) · la más reciente @endif
+                    </span>
+                </div>
             @endforeach
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-green-200 pt-3">
             <a href="{{ route('actas.pdf', $acta) }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm hover:bg-slate-50">Descargar el acta en PDF</a>
+            <a href="{{ route('actas.reprocesar', $acta) }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm hover:bg-slate-50">Reprocesar con mi planilla actual</a>
+            <form method="POST" action="{{ route('actas.destroy', $acta) }}"
+                  onsubmit="return confirm('¿Eliminar esta acta con su PDF, sus planillas y su informe? No se puede deshacer.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="text-sm text-red-700 underline">Eliminar esta acta</button>
+            </form>
         </div>
     </section>
 

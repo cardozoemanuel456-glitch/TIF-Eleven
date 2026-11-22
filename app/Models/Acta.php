@@ -51,6 +51,7 @@ class Acta extends Model
 
     public function planillas(): HasMany
     {
-        return $this->hasMany(PlanillaExcel::class)->latest('generada_en');
+        // La más reciente primero; si dos se generaron en el mismo segundo, desempata el id.
+        return $this->hasMany(PlanillaExcel::class)->latest('generada_en')->latest('id');
     }
 }

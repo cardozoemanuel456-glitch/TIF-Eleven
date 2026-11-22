@@ -24,6 +24,7 @@
                     <th class="px-4 py-3">Folio</th>
                     <th class="px-4 py-3">Estado</th>
                     <th class="px-4 py-3">Cargada por</th>
+                    <th class="px-4 py-3">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -46,9 +47,21 @@
                             <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $color }}">{{ $acta->estado->etiqueta() }}</span>
                         </td>
                         <td class="px-4 py-3">{{ $acta->user?->nombreCompleto() }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <a href="{{ route('actas.show', $acta) }}" class="text-[#1F4E8C] underline">Ver</a>
+                                <a href="{{ route('actas.reprocesar', $acta) }}" class="text-[#1F4E8C] underline">Reprocesar</a>
+                                <form method="POST" action="{{ route('actas.destroy', $acta) }}"
+                                      onsubmit="return confirm('¿Eliminar esta acta con su PDF, sus planillas y su informe? No se puede deshacer.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 underline">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-slate-600">Todavía no se procesaron actas.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-6 text-center text-slate-600">Todavía no se procesaron actas.</td></tr>
                 @endforelse
             </tbody>
         </table>

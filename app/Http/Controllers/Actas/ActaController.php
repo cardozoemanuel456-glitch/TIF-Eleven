@@ -8,11 +8,13 @@ use App\Exceptions\ActaNoDisponibleException;
 use App\Exceptions\PlanillaInvalidaException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Actas\ConfirmarActaRequest;
+use App\Http\Requests\Actas\ReprocesarActaRequest;
 use App\Http\Requests\Actas\SubirActaRequest;
 use App\Models\Acta;
 use App\Models\PlanillaExcel;
 use App\Services\ActaService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -53,15 +55,22 @@ class ActaController extends Controller
         return redirect()->route('actas.show', $acta);
     }
 
-    /** Vista previa si está analizada; informe si está procesada; mensaje si hubo un error. */
+    /**
+     * Con una planilla pendiente (carga nueva o reproceso) muestra la vista previa; si no,
+     * el informe del acta procesada o el motivo por el que no se puede continuar.
+     */
     public function show(Acta $acta): View
     {
         Gate::authorize('view', $acta);
 
+        if ($acta->planilla_origen !== null) {
+            return $this->vistaPrevia($acta);
+        }
+
         return match ($acta->estado) {
-            EstadoActa::Analizada => $this->vistaPrevia($acta),
+            EstadoActa::Analizada => $this->conError($acta, 'Los archivos de esta acta ya no están disponibles: las planillas subidas que no se confirman se descartan a las '.config('actas.horas_limpieza').' horas.'),
             EstadoActa::Procesada => view('actas.informe', ['acta' => $acta->load('planillas', 'user'), 'informe' => $acta->informe ?? []]),
-            EstadoActa::Error => view('actas.error', ['acta' => $acta, 'mensaje' => $acta->mensaje_error]),
+            EstadoActa::Error => $this->conError($acta, $acta->mensaje_error),
         };
     }
 
@@ -73,7 +82,7 @@ class ActaController extends Controller
             return redirect()->route('actas.show', $acta)->with('error', $e->getMessage());
         }
 
-        if ($acta->estado === EstadoActa::Error) {
+        if ($acta->mensaje_error !== null) {
             return redirect()->route('actas.show', $acta)->with('error', $acta->mensaje_error);
         }
 
@@ -83,6 +92,43 @@ class ActaController extends Controller
             'estado',
             "Se cargaron {$cargadas} notas en la planilla. Descargala y usala como tu planilla de seguimiento vigente."
         );
+    }
+
+    /** M1-13: formulario para reprocesar con la planilla de seguimiento actual. */
+    public function reprocesar(Acta $acta): View|RedirectResponse
+    {
+        Gate::authorize('update', $acta);
+
+        if ($acta->planilla_origen !== null) {
+            return redirect()->route('actas.show', $acta);
+        }
+
+        if (! $this->servicio->tienePdf($acta)) {
+            return $this->conError($acta, 'El PDF de esta acta ya no está disponible. Subila de nuevo desde «Subir acta».');
+        }
+
+        return view('actas.reprocesar', ['acta' => $acta]);
+    }
+
+    public function reprocesarGuardar(ReprocesarActaRequest $request, Acta $acta): RedirectResponse
+    {
+        try {
+            $this->servicio->reprocesar($acta, $request->file('planilla'));
+        } catch (ActaNoDisponibleException|ActaIlegibleException|PlanillaInvalidaException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('actas.show', $acta);
+    }
+
+    /** M1-13: elimina el acta con su PDF, sus planillas y su informe. */
+    public function destroy(Request $request, Acta $acta): RedirectResponse
+    {
+        Gate::authorize('delete', $acta);
+
+        $this->servicio->eliminar($acta, $request->user());
+
+        return redirect()->route('actas.index')->with('estado', 'Se eliminó el acta con su PDF, sus planillas y su informe.');
     }
 
     public function pdf(Acta $acta): StreamedResponse
@@ -113,9 +159,18 @@ class ActaController extends Controller
         try {
             $previa = $this->servicio->vistaPrevia($acta);
         } catch (ActaNoDisponibleException|ActaIlegibleException|PlanillaInvalidaException $e) {
-            return view('actas.error', ['acta' => $acta, 'mensaje' => $e->getMessage()]);
+            return $this->conError($acta, $e->getMessage());
         }
 
-        return view('actas.vista-previa', ['acta' => $acta] + $previa);
+        return view('actas.vista-previa', ['acta' => $acta, 'esReproceso' => $acta->planillas()->exists()] + $previa);
+    }
+
+    private function conError(Acta $acta, ?string $mensaje): View
+    {
+        return view('actas.error', [
+            'acta' => $acta,
+            'mensaje' => $mensaje,
+            'puedeReprocesar' => $this->servicio->tienePdf($acta),
+        ]);
     }
 }
