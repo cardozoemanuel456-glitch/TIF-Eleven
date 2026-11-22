@@ -84,7 +84,7 @@ class ActaAnalisisTest extends TestCase
     /**
      * Arma los datos del acta pasando por el lector real.
      *
-     * @param  array<int, array{0: string, 1: string, 2: int, 3: string}>  $alumnos legajo, nombre, nota, letras
+     * @param  array<int, array{0: string, 1: string, 2: int, 3: string}>  $alumnos  legajo, nombre, nota, letras
      */
     private function acta(?string $materia, array $alumnos): array
     {

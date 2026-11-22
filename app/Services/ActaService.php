@@ -105,7 +105,7 @@ class ActaService
      * informe. Si la carga falla, el acta queda en estado «error» con un mensaje claro y
      * no se entrega ninguna planilla.
      *
-     * @param  array<int|string, string>  $decisiones legajo => 'conservar' | 'sobrescribir'
+     * @param  array<int|string, string>  $decisiones  legajo => 'conservar' | 'sobrescribir'
      *
      * @throws ActaNoDisponibleException si el acta ya no se puede confirmar o no hay nada que cargar
      */

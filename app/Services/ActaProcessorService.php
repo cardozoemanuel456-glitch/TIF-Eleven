@@ -159,7 +159,7 @@ class ActaProcessorService
      *    cosa (otra nota, "AR=2/3") es un conflicto que decide la preceptora;
      *  - el cruce es siempre por legajo; si el nombre difiere solo se informa.
      *
-     * @param  array<string, mixed>  $datosActa resultado de parsePdfActa() / parseTexto()
+     * @param  array<string, mixed>  $datosActa  resultado de parsePdfActa() / parseTexto()
      * @return array<string, mixed> columnas, cargas, sin_cambios, conflictos, no_encontrados,
      *                              sin_columna, legajos_repetidos, diferencias_nombre,
      *                              hojas_sin_columna, advertencias y resumen
@@ -186,7 +186,7 @@ class ActaProcessorService
      * Después de guardar, reabre el archivo generado y comprueba cada celda escrita.
      *
      * @param  array<string, mixed>  $datosActa
-     * @param  array<int|string, string>  $decisiones legajo => 'conservar' | 'sobrescribir'
+     * @param  array<int|string, string>  $decisiones  legajo => 'conservar' | 'sobrescribir'
      * @return array{plan: array<string, mixed>, conflictos_resueltos: array<int, array<string, mixed>>, escritas: int}
      *
      * @throws PlanillaInvalidaException
