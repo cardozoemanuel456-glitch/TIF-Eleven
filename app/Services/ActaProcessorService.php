@@ -8,8 +8,6 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use Smalot\PdfParser\Config;
-use Smalot\PdfParser\Parser;
 use Throwable;
 
 /**
@@ -29,6 +27,8 @@ use Throwable;
  */
 class ActaProcessorService
 {
+    public function __construct(private readonly LectorPdfActa $lector) {}
+
     /** Línea que empieza con número de orden y legajo (con o sin puntos de miles). */
     private const LINEA_CANDIDATA = '/^\d{1,3} (?:\d{1,3}(?:\.\d{3})+|\d{4,7})(?: |$)/';
 
@@ -51,7 +51,7 @@ class ActaProcessorService
      */
     public function parsePdfActa(string $ruta): array
     {
-        $datos = $this->parseTexto($this->extraerTexto($ruta));
+        $datos = $this->parseTexto($this->lector->extraer($ruta));
 
         if ($datos['alumnos'] === []) {
             throw new ActaIlegibleException(
@@ -255,30 +255,6 @@ class ActaProcessorService
     }
 
     // ------------------------------------------------------------------ Privados
-
-    private function extraerTexto(string $ruta): string
-    {
-        if (! is_file($ruta) || ! is_readable($ruta)) {
-            throw new ActaIlegibleException('No se encontró el archivo del acta.');
-        }
-
-        try {
-            $config = new Config;
-            $config->setRetainImageContent(false);
-
-            $texto = (new Parser([], $config))->parseFile($ruta)->getText();
-        } catch (Throwable) {
-            throw new ActaIlegibleException('No se pudo leer el PDF: el archivo está dañado o no es un PDF válido.');
-        }
-
-        if (trim($texto) === '') {
-            throw new ActaIlegibleException(
-                'El PDF no contiene texto. Si es un acta escaneada como imagen, Eleven no puede leerla (no hay reconocimiento de texto).'
-            );
-        }
-
-        return $texto;
-    }
 
     /** @return array{orden: int, legajo: string, nombre: string, nota_num: int, nota_letras: string, formato_excel: string}|null */
     private function leerAlumno(string $linea): ?array
