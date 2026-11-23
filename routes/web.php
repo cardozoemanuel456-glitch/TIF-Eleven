@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+// Las rutas de Eleven viven en archivos por módulo.
+require __DIR__.'/modulo0.php';
+require __DIR__.'/modulo1.php';

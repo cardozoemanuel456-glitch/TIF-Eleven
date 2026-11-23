@@ -1,0 +1,67 @@
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'ci/**', 'fix/**']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PHP_VERSION: '8.5'   # la misma que se usa en desarrollo; si el runner no la ofrece, probar con '8.4'
+
+jobs:
+  estilo:
+    name: Estilo de código (Laravel Pint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, gd, zip, iconv, xml
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Verificar el estilo (no modifica archivos)
+        run: ./vendor/bin/pint --test
+
+  pruebas:
+    name: Pruebas automáticas (PHPUnit)
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, gd, zip, iconv, xml, xmlreader, xmlwriter, simplexml, pdo_sqlite, sqlite3
+          coverage: none
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Preparar la aplicación
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+      - name: Ejecutar las pruebas
+        run: php artisan test --compact
+
+  seguridad:
+    name: Auditoría de dependencias
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Buscar vulnerabilidades conocidas
+        run: composer audit
+        continue-on-error: true   # informa los avisos sin bloquear mientras se resuelven
