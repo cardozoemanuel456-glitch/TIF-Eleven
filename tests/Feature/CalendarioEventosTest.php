@@ -240,5 +240,71 @@ class CalendarioEventosTest extends TestCase
         Notification::assertNothingSent();
         $this->assertNull($aviso->fresh()->evento_id);
     }
+
+    public function test_configuracion_permite_personalizar_y_restablecer_colores_de_eventos(): void
+    {
+        $admin = User::factory()->conRol(Rol::Administrador)->create();
+
+        Evento::factory()->parcial()->create([
+            'titulo' => 'Parcial con color personalizado',
+            'fecha_inicio' => '2026-11-12',
+            'fecha_fin' => '2026-11-12',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/configuracion')
+            ->assertOk()
+            ->assertSee('Administración de usuarios')
+            ->assertSee('Personalización de colores de eventos')
+            ->assertSee('Cambiar contraseña')
+            ->assertSee('Cerrar sesión');
+
+        $nuevosColores = [];
+        foreach (TipoEvento::cases() as $tipo) {
+            $nuevosColores[$tipo->value] = $tipo === TipoEvento::Parcial ? '#112233' : $tipo->colorPorDefecto();
+        }
+
+        $this->actingAs($admin)
+            ->put('/configuracion/colores-eventos', ['colores' => $nuevosColores])
+            ->assertRedirect(route('configuracion.index'));
+
+        $this->assertSame('#112233', TipoEvento::Parcial->color());
+
+        $eventosJson = $this->actingAs($admin)
+            ->getJson('/calendario/eventos?start=2026-11-01&end=2026-11-30')
+            ->assertOk()
+            ->json();
+
+        $this->assertSame('#112233', $eventosJson[0]['backgroundColor']);
+
+        $this->actingAs($admin)
+            ->delete('/configuracion/colores-eventos')
+            ->assertRedirect(route('configuracion.index'));
+
+        $this->assertSame(TipoEvento::Parcial->colorPorDefecto(), TipoEvento::Parcial->color());
+    }
+
+    public function test_botones_de_nuevo_evento_y_nuevo_aviso_solo_aparecen_en_sus_vistas_respectivas(): void
+    {
+        $admin = User::factory()->conRol(Rol::Administrador)->create();
+
+        $this->actingAs($admin)
+            ->get('/inicio')
+            ->assertOk()
+            ->assertDontSee('Nuevo evento')
+            ->assertDontSee('Nuevo aviso');
+
+        $this->actingAs($admin)
+            ->get('/calendario')
+            ->assertOk()
+            ->assertSee('Nuevo evento')
+            ->assertDontSee('Nuevo aviso');
+
+        $this->actingAs($admin)
+            ->get('/avisos')
+            ->assertOk()
+            ->assertSee('Nuevo aviso')
+            ->assertDontSee('Nuevo evento');
+    }
 }
 
