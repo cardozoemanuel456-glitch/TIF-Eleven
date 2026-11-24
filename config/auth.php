@@ -114,4 +114,15 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verificación de correo (M3-03)
+    |--------------------------------------------------------------------------
+    | El enlace del correo se usa una sola vez y vence a las 24 horas (1440 minutos).
+    */
+
+    'verification' => [
+        'expire' => (int) env('AUTH_VERIFICATION_EXPIRE', 1440),
+    ],
+
 ];
