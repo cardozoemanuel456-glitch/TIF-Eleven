@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Calendario;
 
 use App\Enums\TipoEvento;
 use App\Http\Controllers\Controller;
-use App\Models\Aviso;
 use App\Models\Evento;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,15 +32,6 @@ class CalendarioController extends Controller
             ->limit(8)
             ->get();
 
-        $avisosRecientes = Aviso::query()
-            ->publicados()
-            ->visiblesPara($usuario)
-            ->when($usuario->esPersonal(), fn ($q) => $q->filtrarAnio($filtroAnio))
-            ->orderByDesc('publicado_en')
-            ->orderByDesc('id')
-            ->limit(4)
-            ->get();
-
         return view('calendario.index', [
             'usuario' => $usuario,
             'puedeGestionar' => $puedeGestionar,
@@ -49,7 +39,6 @@ class CalendarioController extends Controller
             'filtroAnio' => $filtroAnio,
             'filtroTipo' => $filtroTipo,
             'proximosEventos' => $proximosEventos,
-            'avisosRecientes' => $avisosRecientes,
         ]);
     }
 
@@ -93,4 +82,3 @@ class CalendarioController extends Controller
         return response()->json($eventos);
     }
 }
-

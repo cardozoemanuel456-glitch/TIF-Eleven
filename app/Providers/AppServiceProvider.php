@@ -17,10 +17,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer('layouts.app', function ($vista): void {
+        View::composer(['layouts.app', 'avisos.show'], function ($vista): void {
             $usuario = Auth::user();
 
-            if ($usuario === null || !Schema::hasTable('notifications')) {
+            if ($usuario === null || ! Schema::hasTable('notifications')) {
                 $vista->with([
                     'campanaNoLeidas' => 0,
                     'campanaUltimas' => collect(),

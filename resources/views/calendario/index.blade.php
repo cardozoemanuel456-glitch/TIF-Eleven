@@ -64,15 +64,11 @@
             <div class="flex flex-wrap items-center gap-2">
                 <a href="{{ route('gestion.eventos.index') }}"
                    class="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    Gestionar eventos
+                    Listado de eventos
                 </a>
                 <a href="{{ route('gestion.eventos.create') }}"
-                   class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50">
-                    <span class="text-base leading-none">+</span> Nuevo evento
-                </a>
-                <a href="{{ route('gestion.avisos.create') }}"
-                   class="inline-flex items-center gap-1.5 rounded-lg bg-[#1F4E8C] px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#12263F]">
-                    <span class="text-base leading-none">+</span> Nuevo aviso
+                   class="rounded-lg bg-[#1F4E8C] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#12263F]">
+                    Nuevo evento
                 </a>
             </div>
         @endif
@@ -83,9 +79,9 @@
           class="mb-5 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         @if ($usuario->esPersonal())
             <div>
-                <label for="filtro-anio" class="block text-xs font-medium text-slate-600">Destinatario</label>
+                <label for="filtro-anio" class="block text-xs font-medium text-slate-600">Año</label>
                 <select id="filtro-anio" name="anio" class="mt-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm">
-                    <option value="" @selected($filtroAnio === '')>Todos los años y generales</option>
+                    <option value="" @selected($filtroAnio === '')>Todos</option>
                     <option value="general" @selected($filtroAnio === 'general')>Solo generales</option>
                     @foreach (\App\Enums\AnioCursada::cases() as $anioCaso)
                         <option value="{{ $anioCaso->value }}" @selected($filtroAnio === (string) $anioCaso->value)>
@@ -117,10 +113,13 @@
         @endif
     </form>
 
-    {{-- Tarjeta principal estilo Eleven (grilla/lista + columna lateral de referencias y próximos eventos) --}}
+    {{-- Tarjeta principal del calendario (Maqueta 12) --}}
     <div class="grid gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-3 md:p-7">
         <div class="lg:col-span-2 min-w-0">
             <div id="calendario-eleven" class="min-h-[520px]"></div>
+            <p class="mt-3 text-xs text-slate-500">
+                Los tipos se distinguen por color y por rótulo: feriado, receso, inicio y fin de clases, parcial, mesa de examen. Sin año elegido, el evento es general.
+            </p>
         </div>
 
         <aside class="flex flex-col gap-6 border-t border-slate-100 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
@@ -163,7 +162,12 @@
             </div>
 
             <div class="border-t border-slate-100 pt-4">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tipos de evento</h2>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Leyenda de colores</h2>
+                    <a href="{{ route('configuracion.index') }}" class="text-xs font-medium text-[#1F4E8C] underline">
+                        Personalizar
+                    </a>
+                </div>
                 <ul class="mt-2.5 grid grid-cols-2 gap-2 text-xs text-slate-700">
                     @foreach ($tipos as $tipoCaso)
                         <li class="flex items-center gap-2">
@@ -173,25 +177,6 @@
                     @endforeach
                 </ul>
             </div>
-
-            @if ($avisosRecientes->isNotEmpty())
-                <div class="border-t border-slate-100 pt-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Últimos avisos</h2>
-                        <a href="{{ route('avisos.index') }}" class="text-xs font-medium text-[#1F4E8C] underline">Ver todos</a>
-                    </div>
-                    <ul class="mt-2 space-y-2">
-                        @foreach ($avisosRecientes as $aviso)
-                            <li>
-                                <a href="{{ route('avisos.show', $aviso) }}" class="block rounded-md p-1.5 text-xs hover:bg-slate-50">
-                                    <span class="font-medium text-slate-800 hover:text-[#1F4E8C] hover:underline">{{ $aviso->titulo }}</span>
-                                    <span class="block text-[11px] text-slate-500">{{ $aviso->etiquetaDestinatario() }} · {{ $aviso->publicado_en?->format('d/m/Y') }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
         </aside>
     </div>
 
@@ -326,8 +311,8 @@
                     },
                     buttonText: {
                         today: 'Hoy',
-                        month: 'Mes',
-                        list: 'Lista',
+                        month: 'Vista mensual',
+                        list: 'Vista de lista',
                     },
                     noEventsContent: 'No hay eventos académicos en este período.',
                     events: function (info, successCallback, failureCallback) {
@@ -374,4 +359,3 @@
         });
     </script>
 @endpush
-
