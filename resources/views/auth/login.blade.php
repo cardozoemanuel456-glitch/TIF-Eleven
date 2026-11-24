@@ -48,6 +48,10 @@
     <p class="mt-5 text-sm">
         <a href="{{ route('password.request') }}" class="text-[#1F4E8C] underline">¿Olvidaste tu contraseña?</a>
     </p>
+    <p class="mt-2 text-sm">
+        ¿Sos alumno y todavía no tenés cuenta?
+        <a href="{{ route('registro.create') }}" class="text-[#1F4E8C] underline">Registrate</a>
+    </p>
     <p class="mt-2 text-xs text-slate-600">
         ¿Problemas para entrar? Consultá en preceptoría.
     </p>
