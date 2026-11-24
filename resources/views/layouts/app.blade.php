@@ -34,7 +34,17 @@
                        class="{{ request()->routeIs('admin.usuarios.*') ? $activo : $enlace }}">Usuarios</a>
                 @endif
             @endcan
-            {{-- Los demás accesos (alumnos, avisos, TIF) se agregan con cada módulo. --}}
+            @can('listarAlumnos', \App\Models\User::class)
+                @if (Route::has('alumnos.index'))
+                    <a href="{{ route('alumnos.index') }}"
+                       class="{{ request()->routeIs('alumnos.*') ? $activo : $enlace }}">Alumnos</a>
+                @endif
+            @endcan
+            @if ($usuarioActual->esAlumno() && Route::has('perfil.edit'))
+                <a href="{{ route('perfil.edit') }}"
+                   class="{{ request()->routeIs('perfil.*') ? $activo : $enlace }}">Mi perfil</a>
+            @endif
+            {{-- Los demás accesos (avisos, TIF) se agregan con cada módulo. --}}
         </div>
 
         <div class="mt-6 border-t border-white/10 pt-4">
