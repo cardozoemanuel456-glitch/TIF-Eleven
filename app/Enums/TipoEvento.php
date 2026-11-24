@@ -2,9 +2,12 @@
 
 namespace App\Enums;
 
+use Illuminate\Support\Facades\Cache;
+
 /**
  * Tipos de evento del calendario académico (M2-01 y M2-03).
- * Cada tipo define su propio color y rótulo de texto para no depender solo del color.
+ * Cada tipo define su color por defecto (leyenda establecida) y admite
+ * personalización desde el apartado de Configuración.
  */
 enum TipoEvento: string
 {
@@ -15,6 +18,8 @@ enum TipoEvento: string
     case Parcial = 'parcial';
     case MesaExamen = 'mesa_examen';
     case Otro = 'otro';
+
+    public const CACHE_KEY_COLORES = 'eleven.colores_eventos';
 
     public function etiqueta(): string
     {
@@ -29,7 +34,7 @@ enum TipoEvento: string
         };
     }
 
-    public function color(): string
+    public function colorPorDefecto(): string
     {
         return match ($this) {
             self::Feriado => '#DC2626',
@@ -40,6 +45,27 @@ enum TipoEvento: string
             self::MesaExamen => '#7C3AED',
             self::Otro => '#475569',
         };
+    }
+
+    public function color(): string
+    {
+        $personalizados = Cache::get(self::CACHE_KEY_COLORES, []);
+
+        if (is_array($personalizados) && isset($personalizados[$this->value])) {
+            $candidato = (string) $personalizados[$this->value];
+            if (preg_match('/^#[0-9A-Fa-f]{6}$/', $candidato) === 1) {
+                return strtoupper($candidato);
+            }
+        }
+
+        return $this->colorPorDefecto();
+    }
+
+    public static function usaColoresPersonalizados(): bool
+    {
+        $personalizados = Cache::get(self::CACHE_KEY_COLORES, []);
+
+        return is_array($personalizados) && $personalizados !== [];
     }
 
     public function clasesBadge(): string
@@ -72,4 +98,3 @@ enum TipoEvento: string
         return array_map(fn (self $tipo): string => $tipo->value, self::cases());
     }
 }
-

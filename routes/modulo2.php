@@ -6,6 +6,7 @@ use App\Http\Controllers\Calendario\GestionAvisoController;
 use App\Http\Controllers\Calendario\GestionEventoController;
 use App\Http\Controllers\Calendario\GestionNotificacionController;
 use App\Http\Controllers\Calendario\NotificacionController;
+use App\Http\Controllers\ConfiguracionController;
 use App\Models\Aviso;
 use App\Models\Evento;
 use App\Models\NotificacionProgramada;
@@ -13,11 +14,18 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Rutas del módulo 2 · Calendario, avisos y notificaciones
+| Rutas del módulo 2 · Calendario, avisos, notificaciones y configuración
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'activo', 'cambio.password'])->group(function () {
+    // Apartado de configuración (engranaje: usuarios, contraseña, sesión y colores de eventos)
+    Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+    Route::put('/configuracion/colores-eventos', [ConfiguracionController::class, 'actualizarColoresEventos'])
+        ->name('configuracion.colores.actualizar');
+    Route::delete('/configuracion/colores-eventos', [ConfiguracionController::class, 'restablecerColoresEventos'])
+        ->name('configuracion.colores.restablecer');
+
     // Calendario académico (M2-01 a M2-05, HU 12)
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario.index');
     Route::get('/calendario/eventos', [CalendarioController::class, 'eventos'])->name('calendario.eventos');
@@ -55,7 +63,7 @@ Route::middleware(['auth', 'activo', 'cambio.password'])->group(function () {
             Route::delete('/{aviso}', [GestionAvisoController::class, 'destroy'])->name('destroy');
         });
 
-    // Programación de notificaciones y recordatorios (solo preceptoría y administración · HU 16)
+    // Programación de notificaciones (HU 16)
     Route::middleware('can:gestionar,'.NotificacionProgramada::class)
         ->prefix('gestion/notificaciones')->name('gestion.notificaciones.')->group(function () {
             Route::get('/', [GestionNotificacionController::class, 'index'])->name('index');
@@ -65,4 +73,3 @@ Route::middleware(['auth', 'activo', 'cambio.password'])->group(function () {
             Route::delete('/{notificacionProgramada}', [GestionNotificacionController::class, 'destroy'])->name('destroy');
         });
 });
-
