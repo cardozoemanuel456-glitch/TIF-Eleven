@@ -4,11 +4,11 @@ namespace Tests\Feature;
 
 use App\Enums\EstadoUsuario;
 use App\Enums\Rol;
+use App\Notifications\RestablecerPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
-use App\Notifications\RestablecerPasswordNotification;
 use Tests\Concerns\CreaUsuarios;
 use Tests\TestCase;
 

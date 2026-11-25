@@ -6,18 +6,18 @@ use App\Enums\EstadoUsuario;
 use App\Enums\Rol;
 use App\Models\User;
 use App\Notifications\RestablecerPasswordNotification;
+use Database\Seeders\RolSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\CreaUsuarios;
 use Tests\TestCase;
-use Database\Seeders\RolSeeder;
 
 class AdminUsuariosTest extends TestCase
 {
     use CreaUsuarios, RefreshDatabase;
 
-        protected function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
