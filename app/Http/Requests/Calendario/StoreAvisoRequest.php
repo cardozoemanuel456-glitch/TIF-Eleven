@@ -82,4 +82,3 @@ class StoreAvisoRequest extends FormRequest
         ];
     }
 }
-

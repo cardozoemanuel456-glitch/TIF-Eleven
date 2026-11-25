@@ -55,4 +55,3 @@ class AvisoPolicy
         return $this->gestionar($actor);
     }
 }
-

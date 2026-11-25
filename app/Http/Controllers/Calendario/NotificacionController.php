@@ -87,4 +87,3 @@ class NotificacionController extends Controller
         return back()->with('estado', $mensaje);
     }
 }
-

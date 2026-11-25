@@ -76,4 +76,3 @@ class StoreNotificacionProgramadaRequest extends FormRequest
         ];
     }
 }
-

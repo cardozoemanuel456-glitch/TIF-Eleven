@@ -173,4 +173,3 @@ class Aviso extends Model
         return new HtmlString(nl2br($html, false));
     }
 }
-

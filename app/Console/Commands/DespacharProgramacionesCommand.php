@@ -23,4 +23,3 @@ class DespacharProgramacionesCommand extends Command
         return self::SUCCESS;
     }
 }
-

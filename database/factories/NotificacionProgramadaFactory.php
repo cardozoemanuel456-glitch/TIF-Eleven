@@ -37,4 +37,3 @@ class NotificacionProgramadaFactory extends Factory
         return $this->state(fn (): array => ['anio_cursada' => $anio]);
     }
 }
-

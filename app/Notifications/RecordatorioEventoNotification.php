@@ -46,4 +46,3 @@ class RecordatorioEventoNotification extends ComunicacionElevenNotification
         ];
     }
 }
-

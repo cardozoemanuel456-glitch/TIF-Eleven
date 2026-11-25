@@ -45,4 +45,3 @@ class AvisoPublicadoNotification extends ComunicacionElevenNotification
         ];
     }
 }
-

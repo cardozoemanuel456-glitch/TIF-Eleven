@@ -96,4 +96,3 @@ class CalendarioDemoSeeder extends Seeder
         );
     }
 }
-

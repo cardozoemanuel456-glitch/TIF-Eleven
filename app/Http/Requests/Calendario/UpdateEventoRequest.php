@@ -9,4 +9,3 @@ class UpdateEventoRequest extends StoreEventoRequest
         return $this->user()?->can('update', $this->route('evento')) ?? false;
     }
 }
-

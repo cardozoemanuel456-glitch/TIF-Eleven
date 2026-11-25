@@ -24,4 +24,3 @@ class RecordarEventosCommand extends Command
         return self::SUCCESS;
     }
 }
-

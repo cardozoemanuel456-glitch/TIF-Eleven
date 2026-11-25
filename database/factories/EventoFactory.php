@@ -48,4 +48,3 @@ class EventoFactory extends Factory
         return $this->state(fn (): array => ['tipo' => TipoEvento::MesaExamen]);
     }
 }
-

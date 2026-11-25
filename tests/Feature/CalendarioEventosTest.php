@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\AnioCursada;
-use App\Enums\EstadoUsuario;
 use App\Enums\Rol;
 use App\Enums\TipoEvento;
 use App\Models\Aviso;
@@ -307,4 +306,3 @@ class CalendarioEventosTest extends TestCase
             ->assertDontSee('Nuevo evento');
     }
 }
-

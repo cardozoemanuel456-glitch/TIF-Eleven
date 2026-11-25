@@ -26,4 +26,3 @@ enum EstadoNotificacionProgramada: string
         };
     }
 }
-

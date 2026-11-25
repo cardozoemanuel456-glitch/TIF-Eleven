@@ -72,4 +72,3 @@ abstract class ComunicacionElevenNotification extends Notification implements Sh
 
     abstract protected function urlDestino(): string;
 }
-

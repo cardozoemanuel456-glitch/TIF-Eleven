@@ -46,4 +46,3 @@ class EventoPolicy
         return $this->gestionar($actor);
     }
 }
-

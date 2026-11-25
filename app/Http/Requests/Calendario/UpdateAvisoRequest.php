@@ -34,4 +34,3 @@ class UpdateAvisoRequest extends StoreAvisoRequest
         return parent::rules();
     }
 }
-

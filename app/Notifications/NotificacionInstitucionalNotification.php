@@ -56,4 +56,3 @@ class NotificacionInstitucionalNotification extends ComunicacionElevenNotificati
         ];
     }
 }
-

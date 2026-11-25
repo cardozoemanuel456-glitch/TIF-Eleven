@@ -47,4 +47,3 @@ class EventoReprogramadoNotification extends ComunicacionElevenNotification
         ];
     }
 }
-

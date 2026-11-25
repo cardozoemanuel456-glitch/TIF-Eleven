@@ -50,4 +50,3 @@ class AvisoFactory extends Factory
         return $this->state(fn (): array => ['anio_cursada' => $anio]);
     }
 }
-

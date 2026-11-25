@@ -60,4 +60,3 @@ class NotificacionProgramada extends Model
         return $this->estado === EstadoNotificacionProgramada::Pendiente;
     }
 }
-

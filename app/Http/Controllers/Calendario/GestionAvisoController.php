@@ -132,4 +132,3 @@ class GestionAvisoController extends Controller
             ->with('estado', 'El aviso fue eliminado.');
     }
 }
-

@@ -88,4 +88,3 @@ class GestionNotificacionController extends Controller
             ->with('estado', 'La notificación programada fue eliminada.');
     }
 }
-

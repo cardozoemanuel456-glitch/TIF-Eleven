@@ -36,4 +36,3 @@ class NotificacionProgramadaPolicy
         return $this->gestionar($actor);
     }
 }
-

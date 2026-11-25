@@ -73,4 +73,3 @@ class AvisoController extends Controller
         ]);
     }
 }
-

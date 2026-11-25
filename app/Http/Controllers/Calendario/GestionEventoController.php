@@ -102,4 +102,3 @@ class GestionEventoController extends Controller
             ->with('estado', 'El evento fue eliminado del calendario.');
     }
 }
-
